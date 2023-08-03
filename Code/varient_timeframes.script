@@ -61,8 +61,8 @@ for lin in d.keys():
 res=[list(set(dict[i])) for i in dict.keys()]
 dict2={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])}	
 
-for i in dict2.keys():
-	print(i, len(dict2[i]))
+#for i in dict2.keys():
+#	print(i, len(dict2[i]), dict2[i])
 
 for i in dict2.keys():
 	with open(i,'w') as fasts:
@@ -71,7 +71,8 @@ for i in dict2.keys():
 				if (line.startswith('>')):
 					if (j in line):
 						header=seq_lines[index]
-#						fasts.write(header.rstrip()+'\n'+seq_lines[index+1])
+#						print(seq_lines[index+1])
+						fasts.write(header.rstrip()+'\n'+seq_lines[index+1])
 
 	
 
