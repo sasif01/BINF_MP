@@ -1,0 +1,56 @@
+import re
+import os
+import sys
+from os import path
+from sys import argv
+import textwrap
+
+##FIRST COMMAND LINE ARGUMENT: the aligned seqences
+#seq=open(sys.argv[1], 'r')
+#seq_lines=seq.readlines()
+
+##SECOND COMMAND LINE ARGUMENT: the file of consesuss sequences for each timframe (in one file)
+con=open(sys.argv[1], 'r')
+con_lines=con.readlines()
+
+##USER INPUTS
+frag=input('Length of fragment?: ')
+threshold=input('Level of conservatoin (ie. 0.95, 0.99 etc): ')
+
+#conservation scores for each consesusus sequnces for each timeframe/varient file 
+for file in os.listdir(r'/Users/sairaasif49/Desktop/BINF*6999/Sars/LINEAGES/ALIGNED_FILES/'):
+	#zuc holds the aligned sequences from each timeframe/varient 
+	zuc=[]
+	files=open(file+'.one', 'r')
+	files_lines=files.readlines()
+	for index, line in enumerate(files_lines):
+		if (line.startswith('>')):
+			print(line)
+			#Appending the sequences (ie. lines after '>')
+			zuc.append(files_lines[index+1].upper())
+
+	#The fragmented sequences for each aligned file/consesnsus is written to a new file
+	stretch=open(file+'_stretches', 'w')
+#	dict={}
+#	#counts how many time the aligned sequnces have the same character as the consesus seq	
+#	for index, line in enumerate(con_lines):
+#		if (line.startswith(file)):
+#			header=con_lines[index]
+#			print(header)
+#			con_seq=con_lines[index+1]
+#			d=[i[1].count(i[0]) for i in zip(con_seq, zip(*zuc))]
+#			b=[len(i[1]) for i in zip(con_seq, zip(*zuc))]
+#			#Scores each nucleotide site for each consensus sequence
+#			s=[d[i]/b[i] for i in range(0,len(d))]
+#			splits=textwrap.wrap(con_seq, width=frag)
+#			n=frag
+#			score_split=[s[i*n:(i+1)*n] for i in range((len(s)+ n-1)//n )
+#		#	reg=range(0, len(con_seq), 100)
+#			for m in range(len(score_split)):				
+#				avg=sum(score_split[m])/len(score_split[m])
+#				if (avg > threshold):
+#					dict[reg[m]]=[splits[m], avg]
+				
+#	for i in dict.keys():
+#		stretch.write(str(i)+'_'+str(i+len(dict[i][0]))+'_'+str(dict[i][1])+'\n'+dict[i][0])
+
