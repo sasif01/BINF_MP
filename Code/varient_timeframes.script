@@ -7,11 +7,9 @@ import numpy as np
 from collections import defaultdict
 from itertools import groupby
 
-#file1=open(sys.argv[1], 'r')
 seqs=open(sys.argv[2], 'r')
 seq_lines=seqs.readlines()
 #file1_line=file1.readlines()
-#dict={}
 
 lins=defaultdict(set)
 meta=open(sys.argv[1], 'r')
@@ -31,7 +29,6 @@ dict={}
 overlap=input('How much overlap between fixed time windows?: ')
 window=input('What is the time interval?: ')
 for lin in d.keys():
-#	dict={}
 	for i in meta_lines:
 		lines=i.rstrip()
 		datalines=i.rstrip().split(delim)
@@ -40,20 +37,20 @@ for lin in d.keys():
 				for j in range(18,23):
 					for k in range(0,12,int(overlap)):
 						for l in range(1,int(window)+1):
-							if (k+4 <=12): 
+							if (k+int(window) <=12): 
 								for m in re.findall('20'+str(j)+r'-'+"{:02d}".format(k+l), datalines[4]):
-									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+4) not in dict.keys()):
-										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+4)]=[]
-									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+4)].append(datalines[0])
+									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+int(window)) not in dict.keys()):
+										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+int(window))]=[]
+									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+int(window))].append(datalines[0])
 							else:
 								for m in re.findall('20'+str(j+1)+'-'+"{:02d}".format(k+l-12),datalines[4]):
-									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12) not in dict.keys()):
-										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)]=[]
-									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)].append(datalines[0])
+									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12) not in dict.keys()):
+										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12)]=[]
+									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12)].append(datalines[0])
 								for n in re.findall('20'+str(j)+'-'+"{:02d}".format(k+l),datalines[4]):
-									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12) not in dict.keys()):
-										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)]=[]
-									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)].append(datalines[0])	
+									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12) not in dict.keys()):
+										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12)]=[]
+									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12)].append(datalines[0])	
 		else:
 			for var in d[lin]:
 				if (var in lines):
