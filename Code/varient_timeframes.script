@@ -1,0 +1,131 @@
+import re 
+import sys
+from sys import argv
+from itertools import count
+import pandas as pd
+import numpy as np
+from collections import defaultdict
+from itertools import groupby
+
+#file1=open(sys.argv[1], 'r')
+seqs=open(sys.argv[2], 'r')
+seq_lines=seqs.readlines()
+#file1_line=file1.readlines()
+#dict={}
+
+lins=defaultdict(set)
+meta=open(sys.argv[1], 'r')
+meta_lines=meta.readlines()[1:]
+
+delim=input('Specify the delimiter from metadat file: ')
+for i in meta_lines:
+	datalines=i.rstrip().split(delim)
+	lin=datalines[6]
+	var=datalines[1]
+	lins[lin].add(var)
+
+d={key:value for key, value in zip(lins.keys(), [list(set(lins[i])) for i in lins.keys()])}
+
+#Single varient - do fixed time intervals approach
+dict={}
+overlap=input('How much overlap between fixed time windows?: ')
+window=input('What is the time interval?: ')
+for lin in d.keys():
+#	dict={}
+	for i in meta_lines:
+		lines=i.rstrip()
+		datalines=i.rstrip().split(delim)
+		if len(d[lin])==1:
+			if (d[lin][0] in lines):
+				for j in range(18,23):
+					for k in range(0,12,int(overlap)):
+						for l in range(1,int(window)+1):
+							if (k+4 <=12): 
+								for m in re.findall('20'+str(j)+r'-'+"{:02d}".format(k+l), datalines[4]):
+									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+4) not in dict.keys()):
+										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+4)]=[]
+									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+4)].append(datalines[0])
+							else:
+								for m in re.findall('20'+str(j+1)+'-'+"{:02d}".format(k+l-12),datalines[4]):
+									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12) not in dict.keys()):
+										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)]=[]
+									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)].append(datalines[0])
+								for n in re.findall('20'+str(j)+'-'+"{:02d}".format(k+l),datalines[4]):
+									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12) not in dict.keys()):
+										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)]=[]
+									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)].append(datalines[0])	
+		else:
+			for var in d[lin]:
+				if (var in lines):
+					if (str(lin)+'_'+str(var) not in dict.keys()):
+						dict[str(lin)+'_'+str(var)]=[]
+					dict[str(lin)+'_'+str(var)].append(datalines[0])
+
+res=[list(set(dict[i])) for i in dict.keys()]
+dict2={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])}	
+
+for i in dict2.keys():
+	print(i, len(dict2[i]))
+
+for i in dict2.keys():
+	with open(i,'w') as fasts:
+		for index, line in enumerate(seq_lines):
+			for j in dict2[i]:
+				if (line.startswith('>')):
+					if (j in line):
+						header=seq_lines[index]
+#						fasts.write(header.rstrip()+'\n'+seq_lines[index+1])
+
+	
+
+
+####TIMEFRAMES (As a function)#####
+
+#4 months (2month overlap) = overlap: range(0,12,2) and window : range(1,5)
+#6 month (2 month overlap) = overlap: range(0,12,2) and window : range(1,7)
+#def timeframes(window, overlap):
+#	file1=open(sys.argv[1], 'r')
+#	seqs=open(sys.argv[2], 'r')
+#	seq_lines=seqs.readlines()
+#	file1_line=file1.readlines()
+#	dict={}
+#	for i in file1_line:
+#		lines=i.rstrip()
+#		datalines=lines.split('\t')
+#		for j in range(18,23):
+#			for k in range(0,12,overlap):
+#				for l in range(1,window+1): #Adjust this to alter time intervals (4-/ 6-months etc.)
+#					if (k+window <=12):	
+#						for m in re.findall('20'+str(j)+r'-'+"{:02d}".format(k+l), datalines[6]):
+#							if ('20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+window) not in dict.keys()):
+#								dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+window)]=[]
+#							dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+window)].append(datalines[0])
+#					else:
+#						for m in re.findall('20'+str(j+1)+'-'+"{:02d}".format(k+l-12),datalines[6]):
+#							if ('20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12) not in dict.keys()):
+#								dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)]=[]
+#							dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)].append(datalines[0])	
+#						for n in re.findall('20'+str(j)+'-'+"{:02d}".format(k+l),datalines[6]):
+#							if ('20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12) not in dict.keys()):			
+#								dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)]=[]
+#							dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)].append(datalines[0])
+#	
+#	res=[list(set(dict[i])) for i in dict.keys()]
+#	d={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])}
+
+#	return d	
+#	header = [seq_lines[index] for i in dict.keys() for index, line in enumerate(seq_lines) for j in dict[i] if j in line]
+#	nuc= [seq_lines[index+1] for i in dict.keys() for index, line in enumerate(seq_lines) for j in dict[i] if j in line ]
+#	for i in d.keys(): 
+#		fasts=open(i,'w')
+#		for index, line in enumerate(seq_lines):
+#			for j in d[i]:
+#				if (j in line):
+#					header=seq_lines[index]
+#				#	head=header.rstrip() 
+#					nuc=seq_lines[index+1]
+#					fasts.write(header.rstrip()+'\n'+nuc)
+#
+
+
+
