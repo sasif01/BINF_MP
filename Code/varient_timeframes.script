@@ -1,47 +1,63 @@
+#PACKAGES used in the script
 import re 
 import sys
 from sys import argv
 from itertools import count
-import pandas as pd
-import numpy as np
 from collections import defaultdict
-from itertools import groupby
 
-seqs=open(sys.argv[2], 'r')
-seq_lines=seqs.readlines()
-#file1_line=file1.readlines()
-
+# Dictionary to hold the WHO lineage and pangolin designations for SARS-CoV-2
 lins=defaultdict(set)
+
+####COMMAND LINE ARGUMENTS####
+
+# FIRST COMMAND LINE ARGUMENT: The metafile for the Fasta 
 meta=open(sys.argv[1], 'r')
+# Assumes the first line is a header
 meta_lines=meta.readlines()[1:]
 
-delim=input('Specify the delimiter from metadat file: ')
+# SECOND COMMAND LINE ARGUMENT: The Fasta file
+seqs=open(sys.argv[2], 'r')
+seq_lines=seqs.readlines()
+
+####USER INPUT###
+# User specifies the delimeter in the metafile
+delim=input('Specify the delimiter from metadat file (\t=tab,\ =space, ','=comma): ')
+window=input('What is the time interval (in months)?: ')
+overlap=input('How much overlap between fixed time windows (in months)?: ')
+
+# Adds the Lineage and variant info to a dictionary to access later
 for i in meta_lines:
 	datalines=i.rstrip().split(delim)
+	# The WHO lineage info is in the 7th column of metafile
 	lin=datalines[6]
+	# The pangolin varient info is in the 2nd column
 	var=datalines[1]
 	lins[lin].add(var)
 
+# Ensuring only a single copy of each pangolin in kept in the dict
 d={key:value for key, value in zip(lins.keys(), [list(set(lins[i])) for i in lins.keys()])}
 
-#Single varient - do fixed time intervals approach
 dict={}
-overlap=input('How much overlap between fixed time windows?: ')
-window=input('What is the time interval?: ')
+
 for lin in d.keys():
 	for i in meta_lines:
 		lines=i.rstrip()
 		datalines=i.rstrip().split(delim)
+		# If Lineage only has a single variant sequences are seperated by time-intervals 
 		if len(d[lin])==1:
 			if (d[lin][0] in lines):
+				# This should be adjusted is sequence data is found earlier 
+				# SARS-CoV-2 didnt have many sequences before 2018.
 				for j in range(18,23):
 					for k in range(0,12,int(overlap)):
 						for l in range(1,int(window)+1):
+							# When intervals are within the same year
 							if (k+int(window) <=12): 
 								for m in re.findall('20'+str(j)+r'-'+"{:02d}".format(k+l), datalines[4]):
 									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+int(window)) not in dict.keys()):
 										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+int(window))]=[]
 									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+int(window))].append(datalines[0])
+							# When interval passes into the next year
 							else:
 								for m in re.findall('20'+str(j+1)+'-'+"{:02d}".format(k+l-12),datalines[4]):
 									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12) not in dict.keys()):
@@ -51,19 +67,23 @@ for lin in d.keys():
 									if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12) not in dict.keys()):
 										dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12)]=[]
 									dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+int(window)-12)].append(datalines[0])	
+		# For lineages with multiple variants (Omicron etc.)
 		else:
 			for var in d[lin]:
-				if (var in lines):
-					if (str(lin)+'_'+str(var) not in dict.keys()):
-						dict[str(lin)+'_'+str(var)]=[]
-					dict[str(lin)+'_'+str(var)].append(datalines[0])
+				if (datalines[1].count('.')==1):
+					if (str(lin)+'_'+str(datalines[1]) not in dict.keys()):
+						dict[str(lin)+'_'+str(datalines[1])]=[]
+					dict[str(lin)+'_'+str(datalines[1])].append(datalines[0])
+				else:
+					if (str(lin)+'_'+str(datalines[1]) not in dict.keys()):
+						dict[str(lin)+'_'+str(datalines[1])]=[]
+					dict[str(lin)+'_'+str(datalines[1])].append(datalines[0])
 
+# Removes duplicate Accessions from list of values.
 res=[list(set(dict[i])) for i in dict.keys()]
 dict2={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])}	
 
-#for i in dict2.keys():
-#	print(i, len(dict2[i]), dict2[i])
-
+#Using the Accessions to reorganize the sequences by variant.
 for i in dict2.keys():
 	with open(i,'w') as fasts:
 		for index, line in enumerate(seq_lines):
@@ -71,59 +91,9 @@ for i in dict2.keys():
 				if (line.startswith('>')):
 					if (j in line):
 						header=seq_lines[index]
-#						print(seq_lines[index+1])
 						fasts.write(header.rstrip()+'\n'+seq_lines[index+1])
 
-	
 
-
-####TIMEFRAMES (As a function)#####
-
-#4 months (2month overlap) = overlap: range(0,12,2) and window : range(1,5)
-#6 month (2 month overlap) = overlap: range(0,12,2) and window : range(1,7)
-#def timeframes(window, overlap):
-#	file1=open(sys.argv[1], 'r')
-#	seqs=open(sys.argv[2], 'r')
-#	seq_lines=seqs.readlines()
-#	file1_line=file1.readlines()
-#	dict={}
-#	for i in file1_line:
-#		lines=i.rstrip()
-#		datalines=lines.split('\t')
-#		for j in range(18,23):
-#			for k in range(0,12,overlap):
-#				for l in range(1,window+1): #Adjust this to alter time intervals (4-/ 6-months etc.)
-#					if (k+window <=12):	
-#						for m in re.findall('20'+str(j)+r'-'+"{:02d}".format(k+l), datalines[6]):
-#							if ('20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+window) not in dict.keys()):
-#								dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+window)]=[]
-#							dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j)+'-'+str(k+window)].append(datalines[0])
-#					else:
-#						for m in re.findall('20'+str(j+1)+'-'+"{:02d}".format(k+l-12),datalines[6]):
-#							if ('20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12) not in dict.keys()):
-#								dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)]=[]
-#							dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)].append(datalines[0])	
-#						for n in re.findall('20'+str(j)+'-'+"{:02d}".format(k+l),datalines[6]):
-#							if ('20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12) not in dict.keys()):			
-#								dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)]=[]
-#							dict['20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+window-12)].append(datalines[0])
-#	
-#	res=[list(set(dict[i])) for i in dict.keys()]
-#	d={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])}
-
-#	return d	
-#	header = [seq_lines[index] for i in dict.keys() for index, line in enumerate(seq_lines) for j in dict[i] if j in line]
-#	nuc= [seq_lines[index+1] for i in dict.keys() for index, line in enumerate(seq_lines) for j in dict[i] if j in line ]
-#	for i in d.keys(): 
-#		fasts=open(i,'w')
-#		for index, line in enumerate(seq_lines):
-#			for j in d[i]:
-#				if (j in line):
-#					header=seq_lines[index]
-#				#	head=header.rstrip() 
-#					nuc=seq_lines[index+1]
-#					fasts.write(header.rstrip()+'\n'+nuc)
-#
 
 
 
