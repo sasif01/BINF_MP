@@ -7,10 +7,14 @@ Folders Code/ and Data/ contain the scripts and sequences for the project
 
 **Code/**: Contains the python/R scripts 
 
-**Script 1 (vairent_timeframes.script)**: First script to run. Takes user input and 2 command line arguments (first = fasta 
-file, second = meta file, both are located in the Data/raw_seq/ folder). 
+**Script 1 (vairent_timeframes.script)**: First script to run.
+
+Running the script:The script takes user input and 2 command line arguments (first = Meta file, second = Fasta file, both are 
+located in the Data/raw_seq/ folder).
 	
-Purpose: Reorganizes the sequences in the fasta file. For Lineages (ie. WHO lineages: Alpha, Delta, Omicron) with multiple varients (ie. Omicron), the sequences are seperated by varient. WHO lineages with a single varient (ie. Alpha) are separated into fixed time intervals (in months), with a given overlap between intervals, specified by the user. 
+Purpose: Reorganizes the sequences in the fasta file. For WHO Lineages (WHO lineages: Alpha, Delta, Omicron etc.) with multiple 
+variants (ie. Omicron), the sequences are separated by variant. WHO lineages with a single variant (Alpha, Beta etc.) are 
+separated into fixed time intervals (in months), with a given overlap between intervals, specified by the user.
 	
 Results: The output is multiple fasta files names after the Lineage and varient or the Lineage and time-interval. The fasta files are in the Data/processed_seqs/ folder.
 	
