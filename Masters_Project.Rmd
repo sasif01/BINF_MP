@@ -53,7 +53,7 @@ Workflow for organizing sequnce and meta-data
 # Single line of code
 # The headers have the accession and meta info separated by a space.
 # Generated a comma separated file wi
-# buildinga single meta file
+# building a single meta file
  grep '>' sequences.fasta | cut -d ' ' -f1,2 | sed -E 's/\|/,/g' | sed -E 's/,Se.*//g' | sed -E 's/>//g' > varient.meta
  
 #Loop to generate a met for each fasta file (ie. for each varient)
@@ -68,8 +68,17 @@ echo 'Lineage' > Lineage
 for i in *.meta; do sed rLineage $i | sed 'N;s/\n/, /' > $i.meta; done
 
 #Concatenate all the varients into a single file (do the same for sequence data)
-for i in *.meta; do cat $i > Lineage.meta
-for i in *.fasta; do cat $i > Lineage.fasta
+for i in *.meta; do cat $i > Lineage.meta; done
+for i in *.fasta; do cat $i > Lineage.fasta; done
+
+#Reformat the fasta file to have sequnces on one line 
+sed -E 's/$/#/g' para_fastas | sed -E 's/(^>.*)#/\1@/g' | tr -d '\n'| sed -E 's/>/\n>/g' | sed -E 's/@/\n/g' | sed -E 's/#//g' > re_fasta
+
+```
+
+```{r}
+entrez_db_searchable("nucleotide")
+entrez_search(db='nucleotide', term='SARS-CoV-2 BA.1 and Homo Sapiens and complete genome ')
 
 ```
 
@@ -173,9 +182,9 @@ End results: (LINEAGE/SEPERATE_LINEAGES/) 41 files are generated (for 4-month ti
 
 **Alignments**
 
-MAFFT software is used to align the full length genome sequences from each fasta file. Default settings are applied for gap opening and extension penalties.  
+MAFFT software is used to align the full length genome seqences from each fasta file. Default settings are applied for gap opening and extension penalties.  
 
-```{bash}
+```{bash Alignemnt-MAFFT}
 #Align all fasta files for each variant 
 for i in *; do mafft $i > $i.aligned; done
 ```
@@ -187,9 +196,9 @@ End Results : (LINEAGES/ALIGNED_FILES/) 41 files of aligned sequence data.
 
 Fallowing alignment, the consensus sequence for each alignment fasta file is generated using the function ConsensusSeq in R. 
 
-```{r}
+```{r Consensus-R}
 #Get file path for each file
-file_path <-dir_ls(path='./Sars/LINEAGES/ALIGNED_FILES', regexp = 'aligned$')
+file_path <-dir_ls(path='./Data/aligned_seqs/6mn_2olp/', regexp = 'aligned$')
 
 #Empty list that will hold the aligned files
 file_content=c()
@@ -199,12 +208,14 @@ file_content=c()
 for(i in seq_along(file_path)){
   file_content[i] <- as.data.frame(ConsensusSequence(readDNAStringSet(file_path[[i]])))$x
 }
-
+?ConsensusSequence
+word(file_path, 5L, sep = '/')
 #Setting name of each consensus
 file_content <- set_names(file_content, word(file_path, 5L, sep = '/'))
+paste('>', names(file_content))
 
 #Writing all consensus seqs for each time range to a single file 
-write(paste(names(file_content), file_content, sep = '\n'), 'Consensus_4mnVars')
+write(paste(names(file_content), file_content, sep = '\n'), 'Consensus_6mn_2opl_5%')
 
 ```
 End Results : A single file containing all the consensus sequences for each fasta file
