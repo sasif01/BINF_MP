@@ -5,6 +5,11 @@ Folders Code/ and Data/ contain the scripts and sequences for the project
 
 **Workflow**
 
+Pipeline Overview
+
+
+Metadata from the sequence records are used in a python script to filter the sequences in the fasta based on WHO lineage and variant (variant_timeframes.script) (Figure 1. B). The resulting FASTA files for each lineage and variant are aligned using MAFFT (Katoh and Standley, 2013) and the consensus sequences are generating in R (Figure 1. C). Conserved regions are determined using the consensus sequences to measure the stability of the fragment’s relative others across the genome (Figure 1. D). From stable regions of the sequences, information is extracted using python script feature.script (Figure 1. E). The results are used to predict the stability of candidate target regions across other respiratory viruses. 
+
 **Code/**: Contains the python/R scripts 
 
 **Script 1 (vairent_timeframes.script)**: First script to run.
