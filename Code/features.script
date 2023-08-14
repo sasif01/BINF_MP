@@ -1,0 +1,25 @@
+import os 
+import re 
+import sys 
+from sys import argv 
+
+#Conserved sequnces 
+cons=open(sys.argv[1], 'r').readlines()
+
+###GC/AC/AG Conent###
+
+X=input('Specify AC,GC,AG?: ')
+y
+for index, line  enumerate(cons):
+	if (line.startswith('>')):
+		header=cons[index]
+		seq=cons[index+1]
+		A=seq.count(X[0])
+		B=seq.count(X[1])
+		AB=(A+B)/len(seq)
+		print('')
+		
+###Spread of GC, AC, AG content###
+
+
+	
