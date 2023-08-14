@@ -33,4 +33,5 @@ Purpose: Score each base in of the consensus sequnces based on if the same base 
 Results: For each consensus sequences (which are all in a single file), a fasta containing the 'highly stable' fragments is generated, with the lineage, varient, and location (in the consensus genome) information. The files are located in the Data/fragmented_seqs
 
 
+<img width="574" alt="Screenshot 2023-08-14 at 11 27 06 AM" src="https://github.com/sasif01/BINF_MP/assets/114173014/55b21ae2-ec67-4b84-b823-e15a6bf7f0a4">
 
