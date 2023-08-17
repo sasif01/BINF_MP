@@ -5,6 +5,24 @@ from sys import argv
 from itertools import count
 from collections import defaultdict
 
+###INSTRUCTIONS FOR RUNNING SCRIPT####
+
+Purpose: Reorganizes the sequences in the fasta file. For WHO Lineages (WHO lineages: Alpha, Delta, Omicron etc.) with multiple variants 
+(ie. Omicron), the sequences are separated by variant. WHO lineages with a single variant (Alpha, Beta etc.) are separated into fixed 
+time intervals (in months), with a given overlap between intervals, specified by the user.
+
+Running the script:The script takes user input and 2 command line arguments. The first is the Metadata file associated with the FASTA 
+file. Second is the FASTA file (first = Meta file, second = Fasta file, both are located in 
+the Data/raw_seq/ folder).
+
+From terminal, the script is run as fallows: python3 variant_timeframes.script Meta.file Fasta.file
+Running this prompts the user to specify the delimiter in the metafile, the time-interval window (in months) to separate sequences by, 
+and the overlap between windows (in months).
+
+Results: The output is multiple FASTA files named after the Lineage and variant or the Lineage and time-interval. The FASTA files 
+produced for this project are in the Data/processed_seqs/ folder.
+
+
 # Dictionary to hold the WHO lineage and pangolin designations for SARS-CoV-2
 lins=defaultdict(set)
 
