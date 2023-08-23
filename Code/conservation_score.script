@@ -1,3 +1,4 @@
+#PACKAGES 
 import re
 import os
 import sys
@@ -5,32 +6,44 @@ from os import path
 from sys import argv
 import textwrap
 
-##FIRST COMMAND LINE ARGUMENT: the aligned seqences
-#seq=open(sys.argv[1], 'r')
-#seq_lines=seq.readlines()
+###INSTRUCTION FOR RUNNING SCRIPT####
 
-##SECOND COMMAND LINE ARGUMENT: the file of consesuss sequences for each timframe (in one file)
+#Purpose: Score each base in of the consensus sequences based on if the same base is present in the referance Sars-CoV-2 sequence or in 
+#the aligned sequences files. Fragment the consensus (length of fragment is specified by user) and filter out segments that have an 
+#average score lower than the one specified by the user. The resulting fragment are considered highly stable.
+
+#Running the script:The script takes one command line argument (the consensus sequences file) 
+#python3 conservation_score.script consensus.file
+
+
+#This prompts the user to specify the length of fragment the consensus into (must be >100bp) and the Level of conservation across each 
+#fragment lengths. Fragments with less then the specified level of conservation are filtered out.
+
+#Result: A new FASTA file with the fragmented, conserved sequences, with the headers containing the location and stability score 
+#information.
+
+##FIRST COMMAND LINE ARGUMENT: the file of consesuss sequences for each timframe (in one file)
 con=open(sys.argv[1], 'r')
 con_lines=con.readlines()
 
 ##USER INPUTS
-frag=input('Length of fragment?: ')
-threshold=input('Level of conservatoin (ie. 0.95, 0.99 etc): ')
+frag=input('Length of fragment (>100 bp)?: ')
+threshold=input('Level of conservation (ie. 95, 99 etc)?: ')
 
+#Change this file path to the folder that contains all the aligned sequnces files
 #conservation scores for each consesusus sequnces for each timeframe/varient file 
-for file in os.listdir(r'/Users/sairaasif49/Desktop/BINF*6999/Sars/LINEAGES/ALIGNED_FILES/'):
-	#zuc holds the aligned sequences from each timeframe/varient 
+for file in os.listdir(r'/Users/sairaasif49/Desktop/BINF_MP/Data/aligned_seqs/4mn_2olp/'):
+	#zuc holds the aligned sequences from each timeframe/variant 
 	zuc=[]
-	files=open(file+'.one', 'r')
+	files=open(file, 'r')
 	files_lines=files.readlines()
 	for index, line in enumerate(files_lines):
 		if (line.startswith('>')):
-			print(line)
 			#Appending the sequences (ie. lines after '>')
 			zuc.append(files_lines[index+1].upper())
-
+	print(zuc)
 	#The fragmented sequences for each aligned file/consesnsus is written to a new file
-	stretch=open(file+'_stretches', 'w')
+#	stretch=open(file+'_stretches', 'w')
 #	dict={}
 #	#counts how many time the aligned sequnces have the same character as the consesus seq	
 #	for index, line in enumerate(con_lines):
