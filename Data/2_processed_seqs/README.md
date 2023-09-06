@@ -1,4 +1,5 @@
-**Description**: Files in this directory are the results from Script 1 (varient_timeframes.script)
+**Description**: Files in this directory are the results from Script 1 (varient_timeframes.script). The sequence data needed to be pre-processed before alignment and analysis. Specifically, sequences were grouped by Lineage (Omicron, Delta, Beta, etc.) and separated by PANGO lineage **variant** designations. Lineages with only a single variant (Alpha, Delta, etc.) were further separated into fixed time-intervals to track their evolution. This is done so the evolution of each lineage can be tracked over fixed time periods or through the emergence of newer variants.
+
 
 **4mn_2olp** : 4-month time interval, 2 month overlap
 **Script1 Settings**:
