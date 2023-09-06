@@ -30,93 +30,97 @@ library(DECIPHER)
 
 
 
-
 ##OBJECTIVE##
 
-Molecular diagnostic assays require unique and conserved genomic regions to rapidly identify viruses. However, high mutation rates and genetic drift can result in a loss of sensitivity over time. Identifying stable, drift-resistant regions in viral genomes could be used to better molecular assays techniques. The aim of this project is to outline a bioinformatic pipeline that can identify drift-resistant regions of viral genomes. The analysis focuses on respiratory viruses (Influenza, SARS-Cov-2 etc.) with the potential of extending to other human pathogenic viruses. Identification of drift-resistant regions will allow us to complement the standard alignment-based process for viruses with extensive number of sequence submissions. The need to rapidly identify these variants is essential to the developments of vaccinations and public health measures/prevention plans. The development of this pipeline would enable us to identify features of the drift-resistant regions that can be targeted to improve detection of viruses undergoing drift. This would significantly reduce diagnostic detection time and ensure a rapid response to the presence of pathogen in specimens. 
+Nucleic acid-based molecular diagnostic assays require unique and conserved genomic regions to rapidly identify viruses. However, high mutation rates and genetic drift can result in a loss of sensitivity over time. Identifying stable, drift-resistant regions in viral genomes could be used to better molecular assays techniques. The aim of this project is to outline a bioinformatic pipeline that can identify drift-resistant regions of viral genomes. The analysis focuses on respiratory viruses (SARS-Cov-2) with the potential of being extended to other human viral pathogens. Identification of drift-resistant regions will allow us to complement the standard alignment-based process for viruses with extensive number of sequence submissions. The need to rapidly identify these variants is essential to the developments of vaccinations and public health measures/prevention plans. The development of this pipeline would enable us to identify features of the drift-resistant regions that can be targeted to improve detection of viruses undergoing drift. This would significantly reduce diagnostic detection time and ensure a rapid response to the presence of pathogen in specimens. 
 
 ###METHODS###
 
 **DATA**
 
-Sequence data for Sars-CoV-2 was retireved from NCBI Virus. Up to 2000 sequences were retrieved for each varient, along with a results table (metadata) containing Accession, Release Date, Panoglin, Length, Country, Collection Date. An addition column is added to each table to include the WHO lineage for each variant. 
+Sequence data for Sars-CoV-2 was retrieved from NCBI Virus. Up to 2000 sequences were retrieved for each variant, along with a results table (metadata) containing Accession, Release Date, Panoglin, Length, Country, Collection Date. An addition column is added to each table to include the WHO lineage for each variant. 
 
-Included in the fasta file header (to be extracted for the metafile - order is important) : The assumption is that both a fasta file and an associated meta file is used to link the relevant information (length, pangolin country, host, etc.) with the sequence data
+NCBI Virus - Retrieving and Organizing the Data.
+Included in the Fasta file header (to be extracted for the metafile - order is important) : The assumption is that both a Fasta file and an associated meta file is used to link the relevant information (length, pangolin country, host, etc.) with the sequence data.
 
-Custom build selection: Accession, Pangolin, Length, Country, Collection Date, Release Date, Genbank Title
+Custom build (NCBI Virus): Accession, Pangolin, Length, Country, Collection Date, Release Date, Genbank Title
 
-Workflow for organizing sequnce and meta-data
+Workflow for organizing sequence and meta-data
 
-```{bash echo=TRUE}
-##Building a meta-file from the headers in the fasta##
+```{bash Data_organization.script, echo=TRUE}
+##Building a meta-file from the headers in the Fasta##
+
+# The headers have the accession and meta info separated by a space.
+# Results : A comma separated metadata file
 
 # Single line of code
-# The headers have the accession and meta info separated by a space.
-# Generated a comma separated file wi
-# building a single meta file
+# Building a single meta file
  grep '>' sequences.fasta | cut -d ' ' -f1,2 | sed -E 's/\|/,/g' | sed -E 's/,Se.*//g' | sed -E 's/>//g' > varient.meta
  
-#Loop to generate a met for each fasta file (ie. for each varient)
+# Loop to generate a meta file for each Fasta file (ie. for each variant)
 for i in *; so grep '>' $i | cut -d ' ' -f1,2 | sed -E 's/>//g' | sed -E 's/|/,/g' > $i.meta
 
 # Create a single File with the name of the Lineage (do so for each Lineage). 
 # Replace 'Lineage' with the actual lineage name
 echo 'Lineage' > Lineage
 
-#Append the WHO lineage name onto the last column of each meta file
-#Loop for it for all files at once
+# Append the WHO lineage name onto the last column of each meta file
+# Loop for it for all files at once
 for i in *.meta; do sed rLineage $i | sed 'N;s/\n/, /' > $i.meta; done
 
-#Concatenate all the varients into a single file (do the same for sequence data)
+# Concatenate all the varients into a single file (do the same for sequence data)
 for i in *.meta; do cat $i > Lineage.meta; done
 for i in *.fasta; do cat $i > Lineage.fasta; done
 
-#Reformat the fasta file to have sequnces on one line 
+# Reformat the Fasta file to have sequences on one line 
+# The Fasta sequence must be one line (not a newline after 70 characters)
 sed -E 's/$/#/g' para_fastas | sed -E 's/(^>.*)#/\1@/g' | tr -d '\n'| sed -E 's/>/\n>/g' | sed -E 's/@/\n/g' | sed -E 's/#//g' > re_fasta
 
 ```
 
-```{r}
-entrez_db_searchable("nucleotide")
-entrez_search(db='nucleotide', term='SARS-CoV-2 BA.1 and Homo Sapiens and complete genome ')
-
-```
-
-End Results : Sequence data from 9 (change later) lineages of Sars-Cov-2 are retrieved. Some have single varients (Alpha, Delta etc), while others have mutiple.
-
-A single fasta file (lineages.fasta) and single meta file (lineages.meta) is generted in the end. The fasta files used to generated this is stored in BINF_699/LINEAGES/VARIENTS/
+End Results : Sequence data from lineages of Sars-Cov-2 are retrieved. Some have single variants (Alpha, Delta etc), while others have multiple (Omicron).A single Fasta file (lineages_one.fasta) and single meta file (lineages.meta) is generated in the end. The Fasta files used to generated this is stored in BINF_MP/Data/raw_seq/
 
 **SCRIPT 1**
 
-varient_timeframes.script 
+Location: Code/varient_timeframes.script 
 
-A python script is used to organize the fasta file (lineages.fasta) according to number of vairents present across lineages.
+A python script is used to organize the fasta file (lineages.fasta) according to number of variants present across lineages.
 
-Lineages with a single varients (Alpha, Delta, Delta) : The variants sequences are seperated into different fasta files based on collection date. Fixed time intervals are specified in the script (ie, 4-, 6-, 8-months) with a given overalp between dates (ie, 2-month, 4-month etc.). 
+Purpose: Reorganizes the sequences in the fasta file. For WHO Lineages (WHO lineages: Alpha, Delta, Omicron etc.) with multiple variants (ie. Omicron), the sequences are separated by variant. WHO lineages with a single variant (Alpha, Beta etc.) are separated into fixed time intervals (in months), with a given overlap between intervals, specified by the user.
 
-Lineages with multiple variants: Sequences from each varient are seperated based on pangolin designation. 
+Running the script:The script takes user input and 2 command line arguments (first = Meta file, second = Fasta file, both are located in the Data/raw_seq/ folder).
 
-```{python}
-import re 
+Lineages with a single variants (Alpha, Delta, Delta) : The variants sequences are seperated into different Fasta files based on collection date. Fixed time intervals are specified in the script (ie, 4-, 6-, 8-months) with a given overlap between dates (ie, 2-month, 4-month etc.). 
+
+Lineages with multiple variants: Sequences from each variant are separated based on pangolin designation. 
+
+```{python varient_timeframes.script}
+#PACKAGES used in the script
+import re
 import sys
 from sys import argv
 from itertools import count
-# importing pandas as pd
-import pandas as pd
-import numpy as np
 from collections import defaultdict
-from itertools import groupby
 
-#Second command line argument : fasta file (lineages.fasta)
+#Dictionary to hold the WHO lineage and pangolin designations for SARS-CoV-2
+lins=defaultdict(set)
+
+####COMMAND LINE ARGUMENTS####
+
+#FIRST COMMAND LINE ARGUMENT: The metafile for the Fasta
+meta=open(sys.argv[1], 'r')
+#Assumes the first line is a header
+meta_lines=meta.readlines()[1:]
+
+#SECOND COMMAND LINE ARGUMENT: The Fasta file
 seqs=open(sys.argv[2], 'r')
 seq_lines=seqs.readlines()
 
-#Setting up a dictonary 
-lins=defaultdict(set)
-
-#Second command line argument : meatadata file (lineages.meta)
-meta=open(sys.argv[1], 'r')
-meta_lines=meta.readlines()[1:]
+####USER INPUT###
+#User specifies the delimeter in the metafile
+delim=input('Specify the delimiter from metadat file (\t=tab,\ =space, ','=comma): ')
+window=input('What is the time interval (in months)?: ')
+overlap=input('How much overlap between fixed time windows (in months)?: ')
 
 #Creating sicionary of WHO lineage and assocaited varient name (pangolin)
 for i in meta_lines:
@@ -125,7 +129,7 @@ for i in meta_lines:
         var=datalines[1]
         lins[lin].add(var)
 
-#Ensureing only a single copy of each pangolin in kept in the dict
+#Ensuring only a single copy of each pangolin in kept in the dict
 d={key:value for key, value in zip(lins.keys(), [list(set(lins[i])) for i in lins.keys()])}
 
 for lin in d.keys():
@@ -152,19 +156,25 @@ for lin in d.keys():
                                                                         if (lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12) not in dict.keys()):
                                                                                 dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)]=[]
                                                                         dict[lin+'_'+'20'+str(j)+'-'+str(k+1)+'_20'+str(j+1)+'-'+str(k+4-12)].append(datalines[0])
-                # Lineages with multiple varients - sequnces are organized per vairent                                                    
-                else:
+             
+                # For lineages with multiple variants (Omicron etc.)
+                else: 
                         for var in d[lin]:
-                                if (var in lines):
-                                        if (str(lin)+'_'+str(var) not in dict.keys()):
-                                                dict[str(lin)+'_'+str(var)]=[]
-                                        dict[str(lin)+'_'+str(var)].append(datalines[0])
-
-# Ensuring no duplicate accesion names are in the list of values associated with each key
+                                if (datalines[1].count('.')==1):
+                                        if (str(lin)+'_'+str(datalines[1]) not in dict.keys()):
+                                                dict[str(lin)+'_'+str(datalines[1])]=[]
+                                        dict[str(lin)+'_'+str(datalines[1])].append(datalines[0])
+                                else:
+                                        if (str(lin)+'_'+str(datalines[1]) not in dict.keys()):
+                                                dict[str(lin)+'_'+str(datalines[1])]=[]
+                                        dict[str(lin)+'_'+str(datalines[1])].append(datalines[0])
+  
+# Removes duplicate Accessions from list of values.
 res=[list(set(dict[i])) for i in dict.keys()]
-dict2={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])} 
+dict2={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])}
 
-# Using the list of aseccions from the dictionary, write the sequnces to fasta files (named after the keys in the dict)
+
+# Using the Accessions to reorganize the sequences by variant.
 for i in dict2.keys():
         with open(i,'w') as fasts:
                 for index, line in enumerate(seq_lines):
@@ -173,55 +183,89 @@ for i in dict2.keys():
                                         if (j in line):
                                                 header=seq_lines[index]
                                                 fasts.write(header.rstrip()+'\n'+seq_lines[index+1])
+                                                
+ 
+```
 
-                                                        
+End results: (Data/processed_seqs/) Fasta files with the sequences reorganized are produced. 
+
+Files with single variants are separated by either 4 or 6 month intervals with 2 month overlap, to compare results. 
+
+```{r}
+####FIGURE####
+
 
 ```
 
-End results: (LINEAGE/SEPERATE_LINEAGES/) 41 files are generated (for 4-month time frames nd variants)
+
 
 **Alignments**
 
-MAFFT software is used to align the full length genome seqences from each fasta file. Default settings are applied for gap opening and extension penalties.  
+Fallowing the organization of the sequences, sequence alignments are constructed using Multiple alignment fast Fourier transform (MAFFT) (Katoh and Standley, 2013). Default settings are applied for gap opening and extension penalties.  
 
 ```{bash Alignemnt-MAFFT}
-#Align all fasta files for each variant 
+#Align all Fasta files for each variant 
 for i in *; do mafft $i > $i.aligned; done
 ```
 
-End Results : (LINEAGES/ALIGNED_FILES/) 41 files of aligned sequence data.
+End Results : All Aligned sequences are found in Data/aligned_seqs/
 
 
-**Consesnsus Sequence**
+**Consensus Sequence**
 
 Fallowing alignment, the consensus sequence for each alignment fasta file is generated using the function ConsensusSeq in R. 
 
 ```{r Consensus-R}
-#Get file path for each file
-file_path <-dir_ls(path='./Data/aligned_seqs/6mn_2olp/', regexp = 'aligned$')
+# Get file path for each file
+file_path <-dir_ls(path='./Data/aligned_seqs/4mn_2olp/', regexp = 'aligned$')
 
-#Empty list that will hold the aligned files
-file_content=c()
+# Adjust parameter (threshold) to alter level of conversations across sequences 
+for ( j in c(0.1, 0.05, 0.01)){
+  file_content=c()
+  for (i in seq_along(file_path)){
+  file_content[i] <- as.data.frame(ConsensusSequence(readDNAStringSet(file_path[[i]]), threshold = j))$x
+  }
+  # Setting name of each consensus
+  file_content <- set_names(file_content, paste0('>',word(file_path, 5L, sep = '/')))
+  # Writing all consensus seqs for each time range to a single file 
+  write(paste(names(file_content), file_content, sep = '\n'), paste0('Consensus_',j))
 
-#Adjust parameter (threshold) to alter level of conversations across sequences 
-
-for(i in seq_along(file_path)){
-  file_content[i] <- as.data.frame(ConsensusSequence(readDNAStringSet(file_path[[i]])))$x
 }
-?ConsensusSequence
-word(file_path, 5L, sep = '/')
-#Setting name of each consensus
-file_content <- set_names(file_content, word(file_path, 5L, sep = '/'))
-paste('>', names(file_content))
 
-#Writing all consensus seqs for each time range to a single file 
-write(paste(names(file_content), file_content, sep = '\n'), 'Consensus_6mn_2opl_5%')
+x=readDNAMultipleAlignment('./Data/aligned_seqs/6mn_2olp/Alpha_2020-11_2021-4.aligned')
+?consensusString
+y=consensusString(x, ambiguityMap='N', threshold=0.25)
+str_count(y, 'N')
+
+file_path <-dir_ls(path='./Data/aligned_seqs/4mn_2olp/')
+
+for ( j in c(0.05, 0.1, 0.25, 0.5, 0.75)){
+  file_content=c()
+  for (i in seq_along(file_path)){
+    file_content[i] <- consensusString(readDNAMultipleAlignment(file_path[[i]]), ambiguityMap='N', threshold=j)
+  }
+  file_content <- set_names(file_content, paste0('>',word(file_path, 5L, sep = '/')))
+  write(paste(names(file_content), file_content, sep = '\n'), paste0('Consensus_',j))
+}  
 
 ```
+
 End Results : A single file containing all the consensus sequences for each fasta file
 
-```{r}
+The consensus sequnces must be in a single line 
 
+
+```{bash}
+# Reformat the Fasta file to have sequences on one line 
+# The Fasta sequence must be one line (not a newline after 70 characters)
+sed -E 's/$/#/g' para_fastas | sed -E 's/(^>.*)#/\1@/g' | tr -d '\n'| sed -E 's/>/\n>/g' | sed -E 's/@/\n/g' | sed -E 's/#//g' > re_fasta
+
+#For all the files in a folder
+for i in Omi*; do sed -E 's/$/#/g' $i | sed -E 's/(^>.*)#/\1@/g' | tr -d '\n'| sed -E 's/>/\n>/g' | sed -E 's/@/\n/g' | sed -E 's/#//g' > $i.one; done
+```
+
+```{r}
+####FIGURE####
 con_4var <- read_fasta("Sars/LINEAGES/consensus")
 con_4var$lineage <- str_replace(word(con_4var$name, 1L, sep = '_'), ' ', '')
 
@@ -237,4 +281,52 @@ con_4var %>%
 ```
 
 
+**Script2: Stable Regions : Scoring Consensus Sequences**
+
+Each consensus sequences has its bases 'scored' based on how many nucleotides match the consensus across the alignment. A python script is used to score the sequences. Highly stable bases will have higher scores. Each consensus is then fragmented into 100-200 base pair regions. fragments that have a cumulative score less then a given value (ie. 90, 95, 99 etc.) across ALL consensus regions are filtered out. The remaining fragments are analyzed
+
+
+
+
+```{r}
+####FIGURE###
+
+#X-axis = length of genome
+#Barplot of how many bases from the consensus sequnces have the same number of bases at that index of the reference genome.
+
+#reading in data
+ref_counts <- read_csv('ref_counts', col_names = F )
+names(ref_counts) <- 'nums'
+#organizing dataframe for the figure
+fig_df <- data.frame(bp=1:nrow(ref_counts), ref_counts)
+#Bar plot
+ggplot(fig_df) + geom_bar(aes(x=bp, y=nums), stat = 'identity')
+
+```
+```{r}
+#t-test for GC content
+for 
+AB<-read_tsv('Data/features_files/GC_content/4mn_2ovl/GC_score_0.05_100bp')
+AB$position <- seq(1, 30000,100)
+as.numeric(str_replace(AB$position,'-[0-9]+', ''))
+t.test(score~level, data=AB)
+length(nrow(AB))
+
+plot(x=AB$position, y=AB$GC_score)
+ggplot(data = AB)+ geom_point(aes(position, score,color=level))
+
+# Get file path for each file
+file_path <-dir_ls(path='Data/features_files/GC_content/4mn_2ovl/')
+
+str_replace(file_path, '.*/', '')
+
+for (i in seq_along(file_path)){
+  AB<-read_tsv(file_path[i])
+  AB$position <- as.numeric(str_replace(AB$position,'-[0-9]+', ''))
+  plot(x=AB$position, y=AB[[2]], main=str_replace(file_path[[i]], '.*/', ''))
+  
+}  
+
+
+```
 
