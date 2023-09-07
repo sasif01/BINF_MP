@@ -27,6 +27,7 @@ This is done 3 times, to get files with the referance fragmented into 100bp, 150
 The same is done for the fils in the  Data/4_consensus_seqs/6mn_olp/ folder.
 
 #For loop to score and fragment  each of the five consensus files in this folder.
+
 `for i in Data/4_consensus_seqs/6mn_olp/*; do python3 Code/variant_conservation.script $i Data/referance.fasta; done`
 
 #The user will need to specify the length of the fragments for each file.
