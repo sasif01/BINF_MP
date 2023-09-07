@@ -1,4 +1,4 @@
-#AB_content.script
+## AB_content.script
 
 **Purpose**: Determine the AC, GC, AG content of fragments from the referance genome (located in folders inside 5_conserved_seqs/).
 
