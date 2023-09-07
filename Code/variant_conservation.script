@@ -24,7 +24,7 @@ ref_lines=ref.readlines()
 
 ####USER INPUTS####
 frag=input('Length of fragment (>100 bp)?: ')
-threshold=input('Level of conservation (ie. 95, 99 etc): ')
+#threshold=input('Level of conservation (70, 80, 90 etc): ')
                         
 #S
 #Empty list - will be used to hold the referancea and consensus sequences
@@ -47,7 +47,7 @@ ref_split=list()
 for index, line in enumerate(ref_lines):
 	if (line.startswith('>')):
 		ref_seq.append(ref_lines[index+1])
-		ref_split.append(textwrap.wrap(ref_lines[index+1], 100))
+		ref_split.append(textwrap.wrap(ref_lines[index+1], int(frag)))
 
 #Stability score - from the consensus sequences to the referance sequences
 #Counts the number of bases in common (at each index) between all the consensus sequences and the referance
@@ -60,8 +60,10 @@ reg=[i+1 for i in range(0, len(seq[0]), int(frag))]
 n=int(frag)
 final = [score_splits[i * n:(i + 1) * n] for i in range((len(score_splits) + n - 1) // n )] 
 
-cons=open('conserved_regions'+'_'+threshold+_frag, 'w')
-noncon=open('non_conserved_regions'+'_'+threshold+_frag, 'w')
+file=sys.argv[1].split('/')[3]
+
+cons=open('conserved_nonconserved_regions'+'_'+file+'_'+frag+"bp", 'w')
+#noncon=open('non_conserved_regions'+'_'+threshold+'_'+frag, 'w')
 
 #Average the score for each fragment
 #Filter out fragments with less then the specified score
@@ -70,21 +72,25 @@ dict={}
 dict2={}
 for i in range(len(final)):
 	avg=sum(final[i])/len(final[i])
-	if (avg > int(threshold)/100):
-		if (reg[i] not in dict.keys()):
-			dict[reg[i]]=[]
-		dict[reg[i]].append(ref_split[0][i])
-		dict[reg[i]].append(avg)
-	else:
-		if (reg[i] not in dict2.keys()):
-			dict2[reg[i]]=[]
-		dict2[reg[i]].append(ref_split[0][i])
-		dict2[reg[i]].append(avg)
+	if (reg[i] not in dict.keys()):
+		dict[reg[i]]=[]
+	dict[reg[i]].append(ref_split[0][i])
+	dict[reg[i]].append(avg)
+#	if (avg >= int(threshold)/100):
+#		if (reg[i] not in dict.keys()):
+#			dict[reg[i]]=[]
+#		dict[reg[i]].append(ref_split[0][i])
+#		dict[reg[i]].append(avg)
+#	else:
+#		if (reg[i] not in dict2.keys()):
+#			dict2[reg[i]]=[]
+#		dict2[reg[i]].append(ref_split[0][i])
+#		dict2[reg[i]].append(avg)
 for i in dict.keys():
 	cons.write('>'+str(i)+'-'+str(i+int(frag)-1)+' '+'scrore='+str(dict[i][1])+'\n'+str(dict[i][0])+'\n')
 
-for i in dict2.keys():
-        noncons.write('>'+str(i)+'-'+str(i+int(frag)-1)+' '+'scrore='+str(dict2[i][1])+'\n'+str(dict2[i][0])+'\n')
+#for i in dict2.keys():
+#        noncon.write('>'+str(i)+'-'+str(i+int(frag)-1)+' '+'scrore='+str(dict2[i][1])+'\n'+str(dict2[i][0])+'\n')
       
 
 
