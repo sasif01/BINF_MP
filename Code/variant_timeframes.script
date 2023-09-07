@@ -15,15 +15,19 @@ from collections import defaultdict
 #file. Second is the FASTA file (first = Meta file, second = Fasta file, both are located in 
 #the Data/raw_seq/ folder).
 
-#From terminal, the script is run as fallows: 
+#From terminal, the script is run as fallows: This is a general command.
 
 #python3 variant_timeframes.script Meta.file Fasta.file
+
+#Specific command : Assumes the user is running the command from the BINF_MP folder
+
+#python3 Code/variant_timeframes.script Data/1_raw_seq/lineages.meta Data/1_raw_seq/lineages_one.fasta
 
 #Running this prompts the user to specify the delimiter in the metafile, the time-interval window (in months) to separate sequences by, 
 #and the overlap between windows (in months).
 
 #Results: The output is multiple FASTA files named after the Lineage and variant or the Lineage and time-interval. The FASTA files 
-#produced for this project are in the Data/processed_seqs/ folder.
+#produced for this project are in the Data/2_processed_seqs/ folder.
 
 
 # Dictionary to hold the WHO lineage and pangolin designations for SARS-CoV-2
@@ -33,7 +37,7 @@ lins=defaultdict(set)
 
 # FIRST COMMAND LINE ARGUMENT: The metafile for the Fasta 
 meta=open(sys.argv[1], 'r')
-# Assumes the first line is a header
+# Assumes the first line is a header, so skips over the headers
 meta_lines=meta.readlines()[1:]
 
 # SECOND COMMAND LINE ARGUMENT: The Fasta file
@@ -43,7 +47,9 @@ seq_lines=seqs.readlines()
 ####USER INPUT###
 # User specifies the delimeter in the metafile
 delim=input('Specify the delimiter from metadat file: ')
+# User specifies the window of time to seperate vairants by 
 window=input('What is the time interval (in months)?: ')
+# user specifies the window of overlap between time ranges
 overlap=input('How much overlap between fixed time windows (in months)?: ')
 
 # Adds the Lineage and variant info to a dictionary to access later
@@ -58,6 +64,7 @@ for i in meta_lines:
 # Ensuring only a single copy of each pangolin in kept in the dict
 d={key:value for key, value in zip(lins.keys(), [list(set(lins[i])) for i in lins.keys()])}
 
+#empty dict - will hold the time-interval and assession number information
 dict={}
 
 for lin in d.keys():
@@ -104,7 +111,7 @@ for lin in d.keys():
 res=[list(set(dict[i])) for i in dict.keys()]
 dict2={key:value for key, value in zip(dict.keys(), [list(set(dict[i])) for i in dict.keys()])}	
 
-#Using the Accessions to reorganize the sequences by variant.
+# Using the Accessions to reorganize the sequences by variant.
 for i in dict2.keys():
 	with open(i,'w') as fasts:
 		for index, line in enumerate(seq_lines):
