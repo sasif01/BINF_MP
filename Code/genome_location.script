@@ -1,0 +1,44 @@
+import os 
+import sys
+import re
+from sys import argv
+
+
+
+###Location of Stable Regions in Genome###
+#Figure to show spread of stable regions
+#Location info and avgeranced stability score (per fragment) is in header of conserved regions
+
+###USER INPUT###
+threshold=input('Specify threshold for conserved/non-conserved (40%, 50%, 60% etc.): ')
+
+cons=open(sys.argv[1], 'r')
+cons_lines=cons.readlines()
+
+frag=sys.argv[1].split('/')[-1].split('_')[-1]
+consensus=sys.argv[1].split('/')[-1].split('_')[-2]
+
+scores=[]
+for index, line in enumerate(cons_lines):
+	if (line.startswith('>')):
+		header=cons_lines[index]
+		avg=header.split(' ')[1].split('=')[1]
+		scores.append(avg.rstrip())
+
+#Splits the fragmented genomes into quarters to identify where AB content is higher or lower
+chunk_size=int(len(scores)/4)
+
+# Split the list 
+chunks = [scores[i:i+chunk_size] for i in range(0, len(scores), chunk_size)]
+
+
+
+test=open('genome_location:threshold='+threshold+'+consensus_level='+consensus+'_frag='+frag, 'w')
+for i in range(len(chunks)):
+	for j in chunks[i]:
+		if (float(j) >= int(threshold)/100):
+			test.write(j + '\t'+ 'High' + '\t' + str(i+1)+ '\n')
+		else:
+			test.write(j + '\t'+ 'Low' + '\t' + str(i+1) + '\n')
+			
+
