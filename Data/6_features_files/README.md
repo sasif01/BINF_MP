@@ -17,3 +17,14 @@ AC content: For loop to get AC content for all files in Data/5_conserved_seqs/4m
 User input : AC (x15)
 
 AG content: For loop to get AG content for all files in Data/5_conserved_seqs/4mn_2ovl
+
+`for i in Data/5_conserved_seqs/4mn_2ovl/*; do python3 Code/AB_content.script $i; done`
+
+User input : AG (x15)
+
+GC content: For loop to get GC content for all files in Data/5_conserved_seqs/4mn_2ovl
+
+`for i in Data/5_conserved_seqs/4mn_2ovl/*; do python3 Code/AB_content.script $i; done`
+
+User input : GC (x15)
+
