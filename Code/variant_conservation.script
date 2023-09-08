@@ -9,39 +9,70 @@ from itertools import zip_longest
 from collections import Counter
 
 
+###INSTRUCTIONS FOR RUNNING SCRIPT####
+
+###PURPOSE### 
+#Scores and fragments the referance genome using the consensus sequences from folders in 4_consensus_seqs. The referance genome is 
+#scored by number of bases there are in common with consensus sequences. The referance is then fragmented into 100, 150 and 200 base 
+#pair fragments and written to a FASTA file. 
+
+##RUNNING SCRIPT
+
+#General command : python3 variant_conservation.script consensus referance
+
+##### COMMANDS USED tO GET RESULTS #####
+#The fallowing are used to the files located in 5_conserved_seqs/
+
+#4mn_2ovl : folder contains the fragments of the referance using consensus sequences from 4_consensus_seqs/4mn_2ovlp
+#For loop to score and fragment each of the five consensus files in this folder.
+#for i in Data/4_consensus_seqs/4mn_ovlp/*; do python3 Code/variant_conservation.script $i Data/referance.fasta; done
+#The user will need to specify the length of the fragments for each file. User input setting: Length of fragment: 100 (x5)
+#This is done 3 times, to get files with the referance fragmented into 100bp, 150bp and 200bp
+
+#6mn_olp:  folder contains the fragments of the referance using consensus sequences from 4_consensus_seqs/4mn_2ovl
+#The same is done for the files in the Data/4_consensus_seqs/6mn_olp/ folder.
+#For loop to score and fragment each of the five consensus files in this folder.
+#for i in Data/4_consensus_seqs/6mn_olp/*; do python3 Code/variant_conservation.script $i Data/referance.fasta; done
+#The user will need to specify the length of the fragments for each file. User input setting: Length of fragment: 100 or 150 or 200 (x5)
+#This is done 3 times, to get files with the referance fragmented into 100bp, 150bp and 200bp
+
+
+#Running this prompts the user to specify the delimiter in the metafile, the time-interval window (in months) to separate sequences by,
+#and the overlap between windows (in months).
+
+
 ###EXTRACT CONSERVED REGIONS FROM REFERANCE GENOME###
 
-####COMMAND LINE ARGUMENTS#####
+#### COMMAND LINE ARGUMENTS #####
 
-##FIRST COMMAND LINE ARGUMENT: the file of consensus sequences for each timeframe-variant combo (in one file)
+## FIRST COMMAND LINE ARGUMENT: the file of consensus sequences for each timeframe-variant combo (in one file)
 con=open(sys.argv[1], 'r')
 con_lines=con.readlines()
 
-##SECOND COMMAND LINE ARGUMENT: The referance genome for the SARS-CoV-2
+## SECOND COMMAND LINE ARGUMENT: The referance genome for the SARS-CoV-2
 ref=open(sys.argv[2], 'r')
 ref_lines=ref.readlines()
 
 
-####USER INPUTS####
+#### USER INPUTS ####
 frag=input('Length of fragment (>100 bp)?: ')
 #threshold=input('Level of conservation (70, 80, 90 etc): ')
                         
-#S
-#Empty list - will be used to hold the referancea and consensus sequences
+# Empty list - will be used to hold the referancea and consensus sequences
 seq=[]
 
-#Adding the referance sequences to empty list
+# Adding the referance sequences to empty list
 for index, line in enumerate(ref_lines):
 	if (line.startswith('>')):
 		seq.append(ref_lines[index+1])
 
-#Adding the consensus sequences to the list 
+# Adding the consensus sequences to the list 
 for index, line in enumerate(con_lines):
 	if (line.startswith('>')):
 		seqs=con_lines[index+1]
 		seq.append(seqs.rstrip())
 
-#Fragment the referance genome
+# Fragment the referance genome
 ref_seq=[]
 ref_split=list()
 for index, line in enumerate(ref_lines):
@@ -49,27 +80,26 @@ for index, line in enumerate(ref_lines):
 		ref_seq.append(ref_lines[index+1])
 		ref_split.append(textwrap.wrap(ref_lines[index+1], int(frag)))
 
-#Stability score - from the consensus sequences to the referance sequences
-#Counts the number of bases in common (at each index) between all the consensus sequences and the referance
+# Stability score - from the consensus sequences to the referance sequences
+# Counts the number of bases in common (at each index) between all the consensus sequences and the referance
 score_splits=[i[1::].count(i[0])/len(seq) for i in  zip_longest(*seq) if len(i)==len(seq)]
 
-#list for the location information along the referance genome
+# List for the location information along the referance genome
 reg=[i+1 for i in range(0, len(seq[0]), int(frag))]
 
-#Fragments list of scores 
+# Fragments list of scores 
 n=int(frag)
 final = [score_splits[i * n:(i + 1) * n] for i in range((len(score_splits) + n - 1) // n )] 
 
+# Getting name of consensus sequence file
 file=sys.argv[1].split('/')[3]
 
+# Opening up files (whose names inculde information from the name of the consensus sequence file)
 cons=open('conserved_nonconserved_regions'+'_'+file+'_'+frag+"bp", 'w')
-#noncon=open('non_conserved_regions'+'_'+threshold+'_'+frag, 'w')
 
-#Average the score for each fragment
-#Filter out fragments with less then the specified score
-#Append the location info, fragments and the score to empty dictionary
+# Average the score for each fragment
+# Append the location info, fragments and the score to empty dictionary
 dict={}
-dict2={}
 for i in range(len(final)):
 	avg=sum(final[i])/len(final[i])
 	if (reg[i] not in dict.keys()):
@@ -86,11 +116,11 @@ for i in range(len(final)):
 #			dict2[reg[i]]=[]
 #		dict2[reg[i]].append(ref_split[0][i])
 #		dict2[reg[i]].append(avg)
-for i in dict.keys():
-	cons.write('>'+str(i)+'-'+str(i+int(frag)-1)+' '+'scrore='+str(dict[i][1])+'\n'+str(dict[i][0])+'\n')
 
-#for i in dict2.keys():
-#        noncon.write('>'+str(i)+'-'+str(i+int(frag)-1)+' '+'scrore='+str(dict2[i][1])+'\n'+str(dict2[i][0])+'\n')
+# Writing the fragmented sequences to files
+for i in dict.keys():
+	cons.write('>'+str(i)+'-'+str(i+int(frag)-1)+' '+'score='+str(dict[i][1])+'\n'+str(dict[i][0])+'\n')
+
       
 
 
