@@ -1,0 +1,94 @@
+import csv
+import os 
+import re 
+import sys 
+from sys import argv 
+from decimal import Decimal
+
+###INSTRUCTIONS FOR RUNNING SCRIPT####
+
+#Purpose: Determine the AC, GC, AG content of fragments from the referance genome (located in folders inside 5_conserved_seqs/).
+
+#Running the script: The script is run from command line. The script takes 1 command line arguments (the fragmented referance genome in 5_conserved_seqs).
+
+#General format : python3 XY_content.script frag_ref The user will be prompted to specify what base content they want to get (ie, GC or 
+AC or AG)
+
+##### COMMANDS USED tO GET RESULTS #####
+#The fallowing are used to get the files located in 6_features_files/
+
+# The fallowing folders all contain a 4mn_2olp and 6mn_2olp folder
+## AC_content
+## AG_content
+## GC_content
+
+#4mn_2ovl : folder contains the tsv files (reuslting from this script) using the fragmented referance sequnces in 
+5_conserved_seqs/4mn_2ovl
+#For loop to score and fragment each of the five consensus files in this folder.
+#for i in 5_conserved_seqs/4mn_2ovl/*; do python3 Code/XY_content.script $i; done
+#The user will need to specify which base content to get results for: AC or AG or GC (x15)
+
+
+#6mn_2ovl : folder contains the tsv files (reuslting from this script) using the fragmented referance sequnces in 
+5_conserved_seqs/6mn_2olp 
+#For loop to score and fragment each of the five consensus files in this folder.
+#for i in 5_conserved_seqs/6mn_2olp/*; do python3 Code/XY_content.script $i; done                      
+#The user will need to specify which base content to get results for: AC or AG or GC (x15)
+
+# Fragmented referance genome (located in folders within 5_conserved_seqs/) 
+cons=open(sys.argv[1], 'r').readlines()
+
+# Extracting the scores and names from the file name (in command line argument 1)
+name_list=sys.argv[1].split('/')[-1].split('_')
+# length of fragment (which is in the name of the file)
+frag=name_list[-1]
+scores=name_list[-2]
+
+###GC/AC/AG Conent###
+
+#### USER INPUT ####
+X=input('Specify AC,GC,AG?: ')
+
+
+# dictionary that holds the XY content, as well as the average stability score for the fragment
+dict={}
+
+# Getting the XY content for each fragment as well as the averaged stability score (found in header for each fragment)
+for index, line in  enumerate(cons):
+	if (line.startswith('>')):
+		header=cons[index]
+		pos=header.split(' ')[0]
+		avg_score=header.split(' ')[1]
+		seq=cons[index+1]
+		A=seq.count(X[0])
+		B=seq.count(X[1])
+		AB=(A+B)/len(seq)
+		dict[pos]=[AB, avg_score.rstrip()]
+
+
+header=['position',X+'_score', 'conservation_average']
+
+# Holds the loction of each fragment (location relative to the referance)
+pos=[]
+# Holds the XY content for fragment
+bp=[]
+# holds the stability score for each fragment
+avg=[]
+for i in dict.keys():
+	pos.append(i.split('>')[1])
+	avg.append(dict[i][1].split('=')[1])
+	bp.append(dict[i][0])
+
+# Joining the three lists togather
+data=zip(pos, bp, avg)
+
+# Writing the XY contene, fragment location (relative to referance) and averaged stability score to a tsv file
+with open(str(X)+'_score_'+scores+'_'+frag, 'w', newline='') as f_output:		
+	tsv_output = csv.writer(f_output, delimiter='\t')
+	tsv_output.writerow(header)
+	for p, b, a in data:
+		tsv_output.writerow([p, b, a])
+
+
+
+			
