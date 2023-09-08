@@ -7,21 +7,48 @@ from collections import defaultdict
 
 ###INSTRUCTIONS FOR RUNNING SCRIPT####
 
-#Purpose: Reorganizes the sequences in the fasta file. For WHO Lineages (WHO lineages: Alpha, Delta, Omicron etc.) with multiple variants 
-#(ie. Omicron), the sequences are separated by variant. WHO lineages with a single variant (Alpha, Beta etc.) are separated into fixed 
-#time intervals (in months), with a given overlap between intervals, specified by the user.
+#Purpose: The sequence data (lineages_one.fasta)  needed to be pre-processed before alignment and analysis. Specifically, sequences 
+#were grouped by Lineage (Omicron, Delta, Beta, etc.) and separated by PANGO lineage variant designations. Lineages with only a single 
+#variant (Alpha, Delta, etc.) were further separated into fixed time-intervals to track their evolution. This is done so the evolution of each lineage can be 
+#tracked over fixed time periods or through the emergence of newer variants. 
 
 #Running the script:The script takes user input and 2 command line arguments. The first is the Metadata file associated with the FASTA 
-#file. Second is the FASTA file (first = Meta file, second = Fasta file, both are located in 
-#the Data/raw_seq/ folder).
+#file. Second is the FASTA file (first = Meta file, second = Fasta file, both are located in the Data/raw_seq/ folder).
 
-#From terminal, the script is run as fallows: This is a general command.
-
-#python3 variant_timeframes.script Meta.file Fasta.file
+#From terminal, the script is run as fallows: This is a general command: python3 variant_timeframes.script Meta.file Fasta.file
 
 #Specific command : Assumes the user is running the command from the BINF_MP folder
-
 #python3 Code/variant_timeframes.script Data/1_raw_seq/lineages.meta Data/1_raw_seq/lineages_one.fasta
+
+#Running this prompts the user to specify the delimiter in the metafile, the time-interval window (in months) to separate sequences by, 
+#and the overlap between windows (in months).
+
+##### COMMANDS USED tO GET RESULTS ##### 
+
+#The fallowing are used to the files located in 2_processed_seqs/
+
+#4mn_2olp : 4-month time interval, 2 month overlap 
+#Script1 Settings: Running script (in BINF_MP folder) : python3 Code/variant_timeframes.script Data/1_raw_seq/lineages.meta Data/1_raw_seq/lineages_one.fasta
+#User Input Settings : delimiter = ',' , time interval = 4, overlap = 2
+
+
+6mn_2ovl :6-month time interval, 2 month overlap
+#Script1 Settings: Running script (in BINF_MP folder) : python3 Code/variant_timeframes.script Data/1_raw_seq/lineages.meta Data/1_raw_seq/lineages_one.fasta 
+#User Input Settings : delimiter = ',' , time interval = 6, overlap = 2
+
+#4mn_2ovl
+#For loop to score and fragment each of the five consensus files in this folder.
+#for i in Data/4_consensus_seqs/4mn_ovlp/*; do python3 Code/variant_conservation.script $i Data/referance.fasta; done
+#The user will need to specify the length of the fragments for each file. User input setting: Length of fragment: 100 (x5)
+#This is done 3 times, to get files with the referance fragmented into 100bp, 150bp and 200bp
+
+#6mn_olp
+#The same is done for the fils in the Data/4_consensus_seqs/6mn_olp/ folder.
+#For loop to score and fragment each of the five consensus files in this folder.
+#for i in Data/4_consensus_seqs/6mn_olp/*; do python3 Code/variant_conservation.script $i Data/referance.fasta; done
+#The user will need to specify the length of the fragments for each file. User input setting: Length of fragment: 100 or 150 or 200 (x5)
+#This is done 3 times, to get files with the referance fragmented into 100bp, 150bp and 200bp
+
 
 #Running this prompts the user to specify the delimiter in the metafile, the time-interval window (in months) to separate sequences by, 
 #and the overlap between windows (in months).
