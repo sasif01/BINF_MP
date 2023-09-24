@@ -1,0 +1,46 @@
+import os 
+import re 
+import sys
+from sys import argv
+
+# metafile for referance genome - FIRST COMMAND LINE ARGUMENT 
+meta=open(sys.argv[1], 'r').readlines()
+dict={}
+gene=[]
+loc=[]
+for i in meta:
+	if (i[0]!='#'):
+		lines=i.rstrip().split('\t')	
+		if (lines[2]=='gene'):
+			start=lines[3]
+			end=lines[4]
+			gene_fun=lines[8].split(';')[4].replace('gene=', '')
+			dict[gene_fun]=[start, end]
+			gene.append(gene_fun)
+			loc.append([start,end])
+
+
+			
+
+cons=open(sys.argv[2], 'r').readlines()
+for index, line in enumerate(cons):
+	if (line.startswith('>')):
+		header=cons[index]
+		start=header.split(' ')[0].split('-')[0].replace('>', '')
+		end=header.split(' ')[0].split('-')[1]
+		score=header.split(' ')[1].split('=')[1].rstrip()
+		for i in range(0, len(gene)):
+#			if (int(start) >= int(loc[i][0]) and int(end) <= int(loc[i][1])):
+#				print(score + '\t' + start + '\t' + end + '\t' + gene[i])
+			print(str(loc[i][1]) + '\t' + str(loc[i+1][0]))
+
+#			if (int(start) < int(loc[i+1][0]) and int(end) > int(loc[i][1])):
+#				print(score + '\t' + start + '\t' + end + '\t' + 'None')
+
+#		print(score + '\t' + start + '\t' + end + '\t' + 'None')		
+#		for i in dict.keys():
+#			if (int(start) >= int(dict[i][0]) and int(end) <= int(dict[i][1])):
+#				print(score + '\t' + start + '\t' + end + '\t' + i)
+#			else:
+#			if (int(start)> int(dict[i][1]) and int(end)>= int(dict[i][0])):
+#				print(score + '\t' + start + '\t' + end + '\t' + 'None')
