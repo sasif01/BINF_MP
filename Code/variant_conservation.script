@@ -83,6 +83,7 @@ for index, line in enumerate(ref_lines):
 # Stability score - from the consensus sequences to the referance sequences
 # Counts the number of bases in common (at each index) between all the consensus sequences and the referance
 score_splits=[i[1::].count(i[0])/len(seq) for i in  zip_longest(*seq) if len(i)==len(seq)]
+mis=[len(i)-i[1::].count(i[0]) for i in  zip_longest(*seq) if len(i)==len(seq)]
 
 # List for the location information along the referance genome
 reg=[i+1 for i in range(0, len(seq[0]), int(frag))]
@@ -90,6 +91,8 @@ reg=[i+1 for i in range(0, len(seq[0]), int(frag))]
 # Fragments list of scores 
 n=int(frag)
 final = [score_splits[i * n:(i + 1) * n] for i in range((len(score_splits) + n - 1) // n )] 
+mis_frag= [mis[i * n:(i + 1) * n] for i in range((len(mis) + n - 1) // n )]
+
 
 # Getting name of consensus sequence file
 file=sys.argv[1].split('/')[3]
@@ -102,6 +105,8 @@ cons=open('conserved_nonconserved_regions'+'_'+file+'_'+frag+"bp", 'w')
 dict={}
 for i in range(len(final)):
 	avg=sum(final[i])/len(final[i])
+	mist=sum(mis_frag[i])
+	print(mist)
 	if (reg[i] not in dict.keys()):
 		dict[reg[i]]=[]
 	dict[reg[i]].append(ref_split[0][i])
