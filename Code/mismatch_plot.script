@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+
+```
+PROGRAM DESCRIPTION
+This program is used to count the number of base mismatches between two sequences (in particualar, a referance and consensus 
+sequences). 
+
+ARGUMENTS
+-con : name/path to consensus sequence (in FASTA format- with sequence warped to one line) 
+-ref: name/path to referance sequence (in FASTA format- with sequence warped to one line)
+
+USER INPUTS
+-frag : Specify the length of the fragment to analyze mismatches across the referance genome (first command line argument)
+
+OUTPUT
+A tsv file with the location of the fragment (from the referance/first sequence) and the total number of mismatches between the 
+referance/first sequence and the consensus/second sequence
+
+```
+
+### PACKAGES ###
+import os 
+import re 
+import sys
+from sys import argv
+import textwrap
+from itertools import zip_longest
+
+# The consensus sequence file (Data/4_consensus_seqs/)
+con=open(sys.argv[1], 'r').readlines()
+# The referance genome file (Data/referance.fasta)
+ref=open(sys.argv[2], 'r').readlines()
+# Extracting the consensus function (consensusString in R) threshold level from the file name (in command line argument 1)
+con_thresh=sys.argv[1].split('/')[-1].split('_')[-1]
+# Extracting the name of the lineage (Omicron and Delta in this case) 
+name =sys.argv[1].split('/')[-2]
+
+# Specify the length of the fragment to analyze mismatches across
+frag=input('Specify the length of the fragment: ')
+
+
+# List to hold the referance and consensuss sequnces from the two files specified in command line
+seq=[]
+# Extracting the sequence portion of FASTA files only (leaving out the header)
+for index, line in enumerate(ref):
+	if (line.startswith('>')):
+		seq.append(ref[index+1])
+for  index, line in enumerate(con):
+	if (line.startswith('>')):
+		seq.append(con[index+1])
+
+# Number of mismatches between the referance and the consensus sequences
+mis=[1-i[1].count(i[0]) for i in zip(*seq)]
+
+# Fragments list of scores 
+n=int(frag)
+final = [mis[i * n:(i + 1) * n] for i in range((len(mis) + n - 1) // n )]
+
+# List for the location information along the referance genome
+reg=[i+1 for i in range(0, len(seq[0]), n)]
+
+# Writing the position and mismatches count to a tsv file
+mis=open('Mismatches_lineage='+name+'_frag='+frag, 'w')
+for i in range(len(final)):
+	mis_sum=sum(final[i])
+	mis.write(str(reg[i]) + '\t' + str(mis_sum) + '\n')
